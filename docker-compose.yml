@@ -1,0 +1,50 @@
+services:
+  fastapi:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: exosky-backend-nasa
+    restart: always
+    ports:
+      - "8001:8001"
+    volumes:
+      - data:/app/data
+    depends_on:
+      - redis
+    env_file:
+      - .env
+    networks:
+      - app-network
+
+  redis:
+    image: redis:latest
+    container_name: exosky-redis
+    restart: always
+    networks:
+      - app-network
+    volumes:
+      - redis-data:/data
+  
+  caddy:
+    image: caddy:latest
+    container_name: caddy_proxy
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile
+      - caddy_data:/data
+      - caddy_config:/config
+    networks:
+      - app-network
+
+volumes:
+  data:
+  redis-data:
+  caddy_data:
+  caddy_config:
+
+networks:
+  app-network:
+    driver: bridge
